@@ -4,7 +4,7 @@ import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import PoseStamped
 from numpy import random
-from std_srvs.srv import Trigger
+from fun4_interfaces.srv import ModeControl
 import random
 import math
 
@@ -22,18 +22,26 @@ class TargetPoseNode(Node):
         
         
         """---------------------------------------SERVER----------------------------------------"""
-        self.finish_server = self.create_service(Trigger,"/finish",self.finish_callback)
+        self.mode_server = self.create_service(ModeControl,"/mode",self.mode_callback)
         
         
         """----------------------------------------INIT-----------------------------------------"""
         self.target_pose = [0 ,0 ,0]
-        self.finish = False
         
         self.get_logger().info("target_pose_node has been started.")
         
-    def finish_callback(self, request:Trigger, response:Trigger):
-        self.finish = True
-        self.get_logger().info("finish trigger.")
+    def mode_callback(self, request :ModeControl, response :ModeControl):
+        self.mode = request.mode
+        
+        if self.mode == '3':
+            self.generate_target()
+            msg = PoseStamped()
+            msg.pose.position.x = self.target_pose[0]
+            msg.pose.position.y = self.target_pose[1]
+            msg.pose.position.z = self.target_pose[2]
+            self.target_publisher.publish(msg)
+            self.get_logger().info(f"Target Position:\nx = {self.target_pose[0]}\ny = {self.target_pose[1]}\nz = {self.target_pose[2]}")
+            
         return response
         
     def generate_target(self):
@@ -52,14 +60,8 @@ class TargetPoseNode(Node):
                 break
     
     def timer_callback(self):
-        if self.finish == True:
-            self.generate_target()
-            msg = PoseStamped()
-            msg.pose.position.x = self.target_pose[0]
-            msg.pose.position.y = self.target_pose[1]
-            msg.pose.position.z = self.target_pose[2]
-            self.target_publisher.publish(msg)
-            self.finish = False
+        pass
+
         
 
 def main(args=None):

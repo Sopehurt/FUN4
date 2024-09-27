@@ -6,7 +6,7 @@ from geometry_msgs.msg import PoseStamped
 from numpy import random
 from std_srvs.srv import Trigger
 from geometry_msgs.msg import Twist
-from controller_manager_msgs.srv import ConfigureController 
+from fun4_interfaces.srv import ModeControl
 from sensor_msgs.msg import JointState
 
 import random
@@ -35,7 +35,7 @@ class ScheduleNode(Node):
         
         
         """---------------------------------------SERVER----------------------------------------"""
-        self.mode_server = self.create_service(ConfigureController,"/mode",self.mode_callback)
+        self.mode_server = self.create_service(ModeControl,"/mode",self.mode_callback)
         
         
         
@@ -49,11 +49,15 @@ class ScheduleNode(Node):
         self.target_pose[1] = msg.pose.position.y
         self.target_pose[2] = msg.pose.position.z
         
-        self.get_logger().info(f"Target Pose: x={self.target_pose[0]}, y={self.target_pose[1]}, z={self.target_pose[2]}")
-        
-    def mode_callback(self, request :ConfigureController, response :ConfigureController):
-        self.mode = request.name
+    def mode_callback(self, request :ModeControl, response :ModeControl):
+        self.mode = request.mode
         self.get_logger().info(f"Received mode: {self.mode}")
+        
+        if self.mode == '1':
+            self.target_pose[0] = request.ipk_x
+            self.target_pose[1] = request.ipk_y
+            self.target_pose[2] = request.ipk_z
+            self.get_logger().info(f"Target Position:\nx = {self.target_pose[0]}\ny = {self.target_pose[1]}\nz = {self.target_pose[2]}")
         return response
 
     def timer_callback(self):

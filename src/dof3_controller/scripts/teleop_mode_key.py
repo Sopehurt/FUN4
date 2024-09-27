@@ -3,6 +3,8 @@
 import rclpy
 from rclpy.node import Node
 from controller_manager_msgs.srv import ConfigureController  # Import the services
+from fun4_interfaces.srv import ModeControl
+
 
 import sys, select, termios, tty
 
@@ -16,11 +18,16 @@ class TeleopModeKeyNode(Node):
         
 
         """----------------------------------------CLIENT-----------------------------------------"""
-        self.configure_controller_client = self.create_client(ConfigureController, '/mode')
+        self.set_mode_client = self.create_client(ModeControl, '/mode')
         
 
         """-------------------------Terminal settings for keyboard input--------------------------"""
         self.settings = termios.tcgetattr(sys.stdin)
+        
+        
+        """----------------------------------------INIT-----------------------------------------"""
+        self.cmd_vel = [0, 0, 0]
+        
         
         self.get_logger().info("teleop_key_node has been started.")
 
@@ -32,16 +39,36 @@ class TeleopModeKeyNode(Node):
         return key
 
     def send_key(self, key):
-        send_key_request = ConfigureController.Request()
-        send_key_request.name = str(key)
-        self.configure_controller_client.call_async(send_key_request)
+        send_key_request = ModeControl.Request()
+        send_key_request.mode = str(key)
+        self.set_mode_client.call_async(send_key_request)
         self.get_logger().info(f"Sent key {key}")
+        
+    def send_cmd_vel(self, key, cmd_vel):
+        send_cmd_vel_request = ModeControl.Request()
+        send_cmd_vel_request.mode = str(key)
+        send_cmd_vel_request.ipk_x = cmd_vel[0]
+        send_cmd_vel_request.ipk_y = cmd_vel[1]
+        send_cmd_vel_request.ipk_z = cmd_vel[2]
+        self.set_mode_client.call_async(send_cmd_vel_request)
 
     def timer_callback(self):
         key = self.getKey()
 
         if key in ['0', '1', '2', '3']:
-            self.send_key(key)
+            if key == '1':
+                try:
+                    x = float(input("Please enter the value for x: "))
+                    y = float(input("Please enter the value for y: "))
+                    z = float(input("Please enter the value for z: "))
+
+                    cmd_vel = [x, y, z]
+                    self.send_cmd_vel(key,cmd_vel)
+                except ValueError:
+                    self.get_logger().error("Invalid input! Please enter valid numbers.")
+
+            else:
+                self.send_key(key)
 
         # Exit on Ctrl-C
         if key == '\x03':

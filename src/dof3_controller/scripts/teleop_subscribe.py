@@ -37,8 +37,7 @@ class TeleopSubscribeNode(Node):
         self.cmd_vel[1] = msg.linear.y
         self.cmd_vel[2] = msg.linear.z
         
-        self.get_logger().info(f"Linear: x={self.cmd_vel[0]}, y={self.cmd_vel[1]}, z={self.cmd_vel[2]}")
-
+        self.get_logger().info(f"Linear Velocity:\nx = {self.cmd_vel[0]}\ny = {self.cmd_vel[1]}\nz = {self.cmd_vel[2]}")
         
     def timer_callback(self):
         pass
