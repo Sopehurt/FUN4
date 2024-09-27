@@ -33,6 +33,7 @@ install(PROGRAMS
   scripts/teleop_subscribe.py
   scripts/teleop_mode_key.py
   scripts/scheduler.py
+  scripts/calculate.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

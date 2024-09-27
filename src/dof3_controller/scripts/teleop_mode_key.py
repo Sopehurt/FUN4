@@ -2,7 +2,6 @@
 
 import rclpy
 from rclpy.node import Node
-from controller_manager_msgs.srv import ConfigureController  # Import the services
 from fun4_interfaces.srv import ModeControl
 
 
@@ -37,38 +36,61 @@ class TeleopModeKeyNode(Node):
         key = sys.stdin.read(1)
         termios.tcsetattr(sys.stdin, termios.TCSADRAIN, self.settings)
         return key
-
-    def send_key(self, key):
-        send_key_request = ModeControl.Request()
-        send_key_request.mode = str(key)
-        self.set_mode_client.call_async(send_key_request)
-        self.get_logger().info(f"Sent key {key}")
         
-    def send_cmd_vel(self, key, cmd_vel):
-        send_cmd_vel_request = ModeControl.Request()
-        send_cmd_vel_request.mode = str(key)
-        send_cmd_vel_request.ipk_x = cmd_vel[0]
-        send_cmd_vel_request.ipk_y = cmd_vel[1]
-        send_cmd_vel_request.ipk_z = cmd_vel[2]
-        self.set_mode_client.call_async(send_cmd_vel_request)
+    def send_mode_IPK(self, mode, cmd_vel):
+        send_request = ModeControl.Request()
+        send_request.mode = str(mode)
+        send_request.ipk_x = cmd_vel[0]
+        send_request.ipk_y = cmd_vel[1]
+        send_request.ipk_z = cmd_vel[2]
+        self.set_mode_client.call_async(send_request)
+        
+    def send_mode_Teleop(self, reference):
+        send_request = ModeControl.Request()
+        if reference == 1:
+            send_request.mode = 'Tool Reference'
+
+        elif reference == 2:
+            send_request.mode = 'Base Reference'
+        
+        self.set_mode_client.call_async(send_request)
+
+        
+    def send_mode_Auto(self, mode):
+        send_request = ModeControl.Request()
+        send_request.mode = str(mode)
+        self.set_mode_client.call_async(send_request)
 
     def timer_callback(self):
         key = self.getKey()
 
-        if key in ['0', '1', '2', '3']:
-            if key == '1':
-                try:
-                    x = float(input("Please enter the value for x: "))
-                    y = float(input("Please enter the value for y: "))
-                    z = float(input("Please enter the value for z: "))
+        if key == '1':
+            try:
+                x = float(input("Please enter the value for x: "))
+                y = float(input("Please enter the value for y: "))
+                z = float(input("Please enter the value for z: "))
+                cmd_vel = [x, y, z]
+                mode = 'IPK'
+                self.send_mode_IPK(mode, cmd_vel)
+                
+            except ValueError:
+                self.get_logger().error("Invalid input! Please enter valid numbers.")
 
-                    cmd_vel = [x, y, z]
-                    self.send_cmd_vel(key,cmd_vel)
-                except ValueError:
-                    self.get_logger().error("Invalid input! Please enter valid numbers.")
-
-            else:
-                self.send_key(key)
+        elif key == '2':
+            try:
+                reference = int(input("Select Reference Frame: "))
+                mode = 'TELEOP'
+                self.send_mode_Teleop(reference)
+            except ValueError:
+                self.get_logger().error("Invalid input! Please enter 1 or 2.")
+                
+        elif key == '3':
+            mode = 'AUTO'
+            self.send_mode_Auto(mode)
+            
+        elif key == '0':
+            mode = 'IDLE'
+            self.send_mode_Auto(mode)
 
         # Exit on Ctrl-C
         if key == '\x03':
