@@ -6,6 +6,7 @@ from geometry_msgs.msg import PoseStamped
 from numpy import random
 from fun4_interfaces.srv import ModeControl
 from std_srvs.srv import Trigger
+from math import sqrt
 
 
 class TargetPoseNode(Node):
@@ -17,60 +18,48 @@ class TargetPoseNode(Node):
         self.create_timer(1.0 / self.freq, self.timer_callback)
         
         """-----------------------------------------PUB-----------------------------------------"""
-        self.target_publisher = self.create_publisher(PoseStamped, "/target", 10)
+        
+        
+        """---------------------------------------CLIENT----------------------------------------"""
+        
         
         """---------------------------------------SERVER----------------------------------------"""
-        self.mode_server = self.create_service(ModeControl, "/mode", self.mode_callback)
-        self.finish_server = self.create_service(Trigger, "/finish", self.finish_callback)
+        self.mode_server = self.create_service(ModeControl, "/mode_auto", self.mode_callback)
         
         
         """----------------------------------------INIT-----------------------------------------"""
         self.target_pose = [0.0, 0.0, 0.0]
         self.finish = False
         self.get_logger().info("target_pose_node has been started.")
-        
-    
-    
-    def finish_callback(self, request: Trigger.Request, response: Trigger.Response):
-        self.finish = True
-        response.success = True
-        response.message = "Process finished."
-        self.get_logger().info(f"Please select mode")
-        return response
     
     
     def mode_callback(self, request: ModeControl, response: ModeControl):
         self.mode = request.mode
-        
-        if self.mode == 'AUTO':
-            self.generate_target()
-            
+        self.generate_target()
+        response.check = "Generate ramdom target success"
+        response.success = True
+        response.x = self.target_pose[0]
+        response.y = self.target_pose[1]
+        response.z = self.target_pose[2]
+    
         return response
         
     def generate_target(self):
         while True:
-            x = float(random.uniform(-0.53, 0.53))  # Ensure x, y, z are floats
+            x = float(random.uniform(-0.53, 0.53))
             y = float(random.uniform(-0.53, 0.53))
             z = float(random.uniform(-0.53, 0.53))
 
-            random_pose_to_check = x**2 + y**2 + (z - 0.2)**2
+            random_pose_to_check = sqrt(x**2 + y**2 + (z - 0.2)**2)
 
-            if 0.03**2 < random_pose_to_check < 0.53**2:
+            if 0.03 < random_pose_to_check < 0.53:
                 self.target_pose[0] = x
                 self.target_pose[1] = y
                 self.target_pose[2] = z
                 break
     
     def timer_callback(self):
-        if self.finish == True:
-            self.generate_target()
-            self.finish = False
-            
-        msg = PoseStamped()
-        msg.pose.position.x = float(self.target_pose[0])
-        msg.pose.position.y = float(self.target_pose[1])
-        msg.pose.position.z = float(self.target_pose[2])
-        self.target_publisher.publish(msg)
+        pass
 
         
 def main(args=None):

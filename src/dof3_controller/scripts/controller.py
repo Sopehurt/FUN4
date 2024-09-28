@@ -2,6 +2,7 @@
 
 import rclpy
 from rclpy.node import Node
+from sensor_msgs.msg import JointState
 from geometry_msgs.msg import PoseStamped
 from numpy import random
 from std_srvs.srv import Trigger
@@ -17,6 +18,8 @@ class ControllerNode(Node):
         self.freq = 100.0
         self.create_timer(1.0 / self.freq, self.timer_callback)
         
+        """-----------------------------------------PUB-----------------------------------------"""
+        self.joint_pub = self.create_publisher(JointState, "/joint_states", 10)
         
         """-----------------------------------------SUB-----------------------------------------"""
         

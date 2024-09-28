@@ -43,7 +43,8 @@ def generate_launch_description():
                                   output='screen',
                                   parameters=parameters
     )
-
+    
+    """----------------------------------------JointStateGUI--------------------------------------"""
     joint_state_publisher_gui = Node(
         package='joint_state_publisher_gui',
         executable='joint_state_publisher_gui'
@@ -54,6 +55,7 @@ def generate_launch_description():
     launch_description.add_action(rviz)
     launch_description.add_action(robot_state_publisher)
     launch_description.add_action(joint_state_publisher_gui)
+
     
     """-----------------------------------------ScheduleNode---------------------------------------"""
     ScheduleNode = Node(
@@ -78,28 +80,27 @@ def generate_launch_description():
     )
     launch_description.add_action( TargetPoseNode )
     
-    
-    """-----------------------------------TeleopSubscribeNode---------------------------------------"""
-    TeleopSubscribeNode = Node(
+  
+    """---------------------------------------CalculateNode------------------------------------------"""
+    CalculateNode = Node(
         package='dof3_controller',
         namespace='',
-        executable='teleop_subscribe.py',
-        name='teleop_subscribe_node',
+        executable='calculate.py',
+        name='calculate_node',
         parameters=[
         ]
     )
-    launch_description.add_action( TeleopSubscribeNode )
+    launch_description.add_action( CalculateNode )
     
     
-    """--------------------------------------ControllerNode------------------------------------------"""
-    ControllerNode = Node(
-        package='dof3_controller',
-        namespace='',
-        executable='controller.py',
-        name='controller_node',
-        parameters=[
-        ]
-    )
-    launch_description.add_action( ControllerNode )
-    
+    # """--------------------------------------ControllerNode------------------------------------------"""
+    # ControllerNode = Node(
+    #     package='dof3_controller',
+    #     namespace='',
+    #     executable='controller.py',
+    #     name='controller_node',
+    #     parameters=[
+    #     ]
+    # )
+    # launch_description.add_action( ControllerNode )
     return launch_description

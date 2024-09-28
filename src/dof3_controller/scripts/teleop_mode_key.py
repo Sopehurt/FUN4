@@ -25,7 +25,7 @@ class TeleopModeKeyNode(Node):
         
         
         """----------------------------------------INIT-----------------------------------------"""
-        self.cmd_vel = [0, 0, 0]
+        self.target = [0, 0, 0]
         
         
         self.get_logger().info("teleop_key_node has been started.")
@@ -37,21 +37,21 @@ class TeleopModeKeyNode(Node):
         termios.tcsetattr(sys.stdin, termios.TCSADRAIN, self.settings)
         return key
         
-    def send_mode_IPK(self, mode, cmd_vel):
+    def send_mode_IPK(self, mode, target):
         send_request = ModeControl.Request()
         send_request.mode = str(mode)
-        send_request.ipk_x = cmd_vel[0]
-        send_request.ipk_y = cmd_vel[1]
-        send_request.ipk_z = cmd_vel[2]
+        send_request.ipk_x = target[0]
+        send_request.ipk_y = target[1]
+        send_request.ipk_z = target[2]
         self.set_mode_client.call_async(send_request)
         
     def send_mode_Teleop(self, reference):
         send_request = ModeControl.Request()
         if reference == 1:
-            send_request.mode = 'Tool Reference'
+            send_request.mode = 'TRef'
 
         elif reference == 2:
-            send_request.mode = 'Base Reference'
+            send_request.mode = 'BRef'
         
         self.set_mode_client.call_async(send_request)
 
@@ -69,9 +69,9 @@ class TeleopModeKeyNode(Node):
                 x = float(input("Please enter the value for x: "))
                 y = float(input("Please enter the value for y: "))
                 z = float(input("Please enter the value for z: "))
-                cmd_vel = [x, y, z]
+                target = [x, y, z]
                 mode = 'IPK'
-                self.send_mode_IPK(mode, cmd_vel)
+                self.send_mode_IPK(mode, target)
                 
             except ValueError:
                 self.get_logger().error("Invalid input! Please enter valid numbers.")
@@ -81,6 +81,7 @@ class TeleopModeKeyNode(Node):
                 reference = int(input("Select Reference Frame: "))
                 mode = 'TELEOP'
                 self.send_mode_Teleop(reference)
+                
             except ValueError:
                 self.get_logger().error("Invalid input! Please enter 1 or 2.")
                 

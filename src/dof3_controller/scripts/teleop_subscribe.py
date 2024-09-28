@@ -16,19 +16,20 @@ class TeleopSubscribeNode(Node):
         self.create_timer(1.0 / self.freq, self.timer_callback)
         
         """-----------------------------------------PUB-----------------------------------------"""
-        self.cmd_vel_publisher = self.create_publisher(Twist, "/cmd_vel", 10)
+        self.cmd_vel_publisher = self.create_publisher(Twist, "/pose_vel", 10)
         
         """-----------------------------------------SUB-----------------------------------------"""
         self.create_subscription(Twist, "/cmd_vel", self.cmd_vel_callback, 10)
         
         """---------------------------------------CLIENT-----------------------------------------"""
         
+        
         """---------------------------------------SERVER----------------------------------------"""
-        self.mode_server = self.create_service(ModeControl, "/mode", self.mode_callback)
+        self.mode_server = self.create_service(ModeControl, "/mode_teleop", self.mode_callback)
         
         
         """----------------------------------------INIT-----------------------------------------"""
-        self.mode = None
+
         self.cmd_vel = Twist()
         self.get_logger().info("teleop_subscribe_node has been started.")
         
