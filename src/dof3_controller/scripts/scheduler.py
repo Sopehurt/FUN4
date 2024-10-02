@@ -70,7 +70,7 @@ class ScheduleNode(Node):
                 target_request.ipk_z = self.target_IPK[2]
                 self.cal_state.call_async(target_request)
 
-                self.get_logger().info(f" {self.target_IPK}")
+                # self.get_logger().info(f" {self.target_IPK}")
             
             elif self.mode == 'AUTO':
                 self.idle = 0
@@ -83,12 +83,18 @@ class ScheduleNode(Node):
 
             elif self.mode == 'TRef':
                 self.idle = 0
+                target_request = ModeControl.Request()
+                target_request.mode = self.mode
+                self.cal_state.call_async(target_request)
                 # self.get_logger().info(f" {self.mode}")
                 
                 
 
             elif self.mode == 'BRef':
                 self.idle = 0
+                target_request = ModeControl.Request()
+                target_request.mode = self.mode
+                self.cal_state.call_async(target_request)
                 # self.get_logger().info(f" {self.mode}")
 
         
@@ -103,7 +109,7 @@ class ScheduleNode(Node):
         self.target_pose[1] = response.y
         self.target_pose[2] = response.z
         
-        self.get_logger().info(f"{self.target_pose}")
+        # self.get_logger().info(f"{self.target_pose}")
         
         srv = ModeControl.Request()
         srv.mode = self.mode
