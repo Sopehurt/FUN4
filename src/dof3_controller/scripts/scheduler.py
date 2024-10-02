@@ -16,7 +16,7 @@ class ScheduleNode(Node):
         self.create_timer(1.0 / self.freq, self.timer_callback)
         
         """-----------------------------------------PUB-----------------------------------------"""
-        self.position_vel_publisher = self.create_publisher(Twist, "/pose_vel", 10)
+
         
         """---------------------------------------CLIENT----------------------------------------"""
         self.cal_state = self.create_client(ModeControl, '/cal_state')
@@ -50,8 +50,15 @@ class ScheduleNode(Node):
         if self.mode == 'IDLE':
             self.auto = 0
             self.idle = 1
+            target_request = ModeControl.Request()
+            target_request.mode = self.mode
+            target_request.ipk_x = self.target_IPK[0]
+            target_request.ipk_y = self.target_IPK[1]
+            target_request.ipk_z = self.target_IPK[2]
+            self.cal_state.call_async(target_request)
 
-        if self.idle == 1:
+        if self.idle == 1 or self.auto == 1:
+
             if self.mode == 'IPK':
                 self.idle = 0
                 self.get_logger().info(f"mode 1")
@@ -66,17 +73,23 @@ class ScheduleNode(Node):
                 self.get_logger().info(f" {self.target_IPK}")
             
             elif self.mode == 'AUTO':
+                self.idle = 0
+                self.auto = 1
                 self.get_logger().info(f"mode 3")
                 send_request = ModeControl.Request()
                 send_request.mode = "get_random_target"
                 future = self.mode_auto_client.call_async(send_request)
                 future.add_done_callback(self.callback_auto)
 
-            elif self.mode == 'Tool Reference':
+            elif self.mode == 'TRef':
                 self.idle = 0
+                # self.get_logger().info(f" {self.mode}")
+                
+                
 
-            elif self.mode == 'Base Reference':
+            elif self.mode == 'BRef':
                 self.idle = 0
+                # self.get_logger().info(f" {self.mode}")
 
         
                 

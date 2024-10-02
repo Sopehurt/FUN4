@@ -4,6 +4,7 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import JointState
 from fun4_interfaces.srv import ModeControl
+from geometry_msgs.msg import Twist
 
 from spatialmath import SE3
 from math import pi, sqrt
@@ -27,7 +28,7 @@ class CalculateNode(Node):
         
         
         """-----------------------------------------SUB-----------------------------------------"""
-        
+        self.cmd_sub = self.create_subscription(Twist, '/cmd_vel', self.cmd_vel_callback, 10)
         
         
         """---------------------------------------SERVER----------------------------------------"""
@@ -39,21 +40,35 @@ class CalculateNode(Node):
         
         
         self.kp = 1
-        self.init_q = [0.0, 0.0, 0.0]
-        self.q = [0.0, 0.0, 0.0]
+        self.init_q = np.array([0.0, 0.0, 0.0])
+        self.q = np.array([0.0, 0.0, 0.0])
         self.name = ["joint_1", "joint_2", "joint_3"]
         self.get_logger().info("target_pose_node has been started.")
         self.can_do = False
-        self.target = [0.0, 0.0, 0.0]
+        self.tele_do = False
+        self.target = np.array([0.0, 0.0, 0.0])
         self.mode = ''
+        self.cmd_vel = np.array([0.0, 0.0, 0.0])
 
         
     def server_cal_state_callback(self, request: ModeControl.Request, response: ModeControl.Response):
-        self.can_do = True
         self.mode = request.mode
-        self.target[0] = request.ipk_x
-        self.target[1] = request.ipk_y
-        self.target[2] = request.ipk_z
+        if self.mode == 'IDLE':
+            self.can_do = False
+            self.tele_do = False
+            self.get_logger().info('IDLE')
+        
+        elif self.mode == 'TRef' or self.mode == 'BRef':
+            self.tele_do = True
+            self.can_do = True
+            self.get_logger().info('Teleop mode')
+
+        else:
+            self.can_do = True
+            self.target[0] = request.ipk_x
+            self.target[1] = request.ipk_y
+            self.target[2] = request.ipk_z
+            
         return response
     
     def robot_description(self):
@@ -85,46 +100,58 @@ class CalculateNode(Node):
         send_request = ModeControl.Request()
         send_request.mode = str(mode)
         self.mode_client.call_async(send_request)
-        
+    
+    def cmd_vel_callback(self, msg: Twist):
+        self.cmd_vel[0] = msg.linear.x
+        self.cmd_vel[1] = msg.linear.y
+        self.cmd_vel[2] = msg.linear.z
         
     def timer_callback(self):
-        # self.get_logger().info(f" {self.target}")
-        if self.can_do == True:
-            p_0e = self.robot_description().fkine(self.init_q).t[:3]
-            
-            error = (np.array(self.target) - np.array(p_0e)) * self.kp
-            
-            matrix_3x6 = self.robot_description().jacob0(self.init_q)
-            matrix_3x3 = matrix_3x6[:3, :3]
-            
-            q_dot = np.linalg.pinv(matrix_3x3).dot(error)
-            self.init_q += q_dot * 1/self.freq
-            
+        self.get_logger().info(f" {self.cmd_vel}")
+        if self.can_do:
+            if self.tele_do:
+                
+                if self.mode == 'TRef':
+                    jacobian = self.robot.jacobe(self.init_q)
+                elif self.mode == 'BRef':
+                    jacobian = self.robot.jacob0(self.init_q)
+                    
+                jacobian_3x3 = jacobian[:3, :3]    
+                q_dot = np.linalg.pinv(jacobian_3x3).dot(self.cmd_vel)
+                
+            else:  # Teleoperation is False   
+                p_0e = self.robot.fkine(self.init_q).t[:3]
+                error = (np.array(self.target) - np.array(p_0e)) * self.kp
+                matrix_3x6 = self.robot.jacob0(self.init_q)
+                matrix_3x3 = matrix_3x6[:3, :3]
+                q_dot = np.linalg.pinv(matrix_3x3).dot(error)
+                    
+            self.init_q += q_dot * (1 / self.freq)
+
             self.msg = JointState()
-            for i in range(len(q_dot)):
-                self.q[i] += q_dot[i] * (1 / self.freq)
-                self.msg.position.append(self.q[i]) 
-                self.msg.name.append(self.name[i])
+            self.msg.name = self.name
+            self.msg.position = self.q.tolist()  # Ensure it's a list for publishing
             
+            self.q += q_dot * (1 / self.freq)
+                
             self.msg.header.stamp = self.get_clock().now().to_msg()
             self.joint_pub.publish(self.msg)
             self.get_logger().info('go')
             
-            if error[0] < 0.00001 and error[1] < 0.00001 and error[2] < 0.00001:
+            if np.linalg.norm(error) < 0.001:
                 self.get_logger().info(f'{error}')
                 self.can_do = False
                 self.msg.position = [0.0, 0.0, 0.0]
                 self.joint_pub.publish(self.msg)
-                
-                if self.mode == 'IPK':
-                    mode = 'IDLE'
-                    self.finish_call(mode)
-                    self.get_logger().info('IDLE')
-                elif self.mode == 'AUTO':
+                    
+                if self.mode == 'AUTO':
                     mode = 'AUTO'
-                    self.finish_call(mode)
-                    self.get_logger().info('AUTO')
+                else:
+                    mode = 'IDLE'
                 
+                self.finish_call(mode)
+                self.get_logger().info(f'{mode}')
+                    
 
 def main(args=None):
     rclpy.init(args=args)
