@@ -70,7 +70,11 @@ class ScheduleNode(Node):
                 target_request.ipk_z = self.target_IPK[2]
                 self.cal_state.call_async(target_request)
 
-                # self.get_logger().info(f" {self.target_IPK}")
+                '''ros2 service call /cal_state fun4_interfaces/srv/ModeControl "mode: 'IPK'
+                ipk_x: 1.1
+                ipk_y: 0.2
+                ipk_z: 0.1" '''
+
             
             elif self.mode == 'AUTO':
                 self.idle = 0

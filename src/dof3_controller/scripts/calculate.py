@@ -4,13 +4,14 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import JointState
 from fun4_interfaces.srv import ModeControl
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import Twist, PoseStamped
 
 from spatialmath import SE3
 from math import pi
 import roboticstoolbox as rtb
 import numpy as np
-
+from std_msgs.msg import Header, String
+from math import sqrt
 
 class CalculateNode(Node):
     def __init__(self):
@@ -24,6 +25,9 @@ class CalculateNode(Node):
         
         """-----------------------------------------PUB-----------------------------------------"""
         self.joint_pub = self.create_publisher(JointState, "/joint_states", 10)
+        self.eff_pub = self.create_publisher(PoseStamped, "/end_effector", 10)
+        self.target_pub = self.create_publisher(PoseStamped, "/target", 10)
+        self.singularity_pub = self.create_publisher(String, "/singularity", 10)
         
         """-----------------------------------------SUB-----------------------------------------"""
         self.cmd_sub = self.create_subscription(Twist, '/cmd_vel', self.cmd_vel_callback, 10)
@@ -51,6 +55,7 @@ class CalculateNode(Node):
             self.can_do = False
             self.tele_do = False
             self.get_logger().info('IDLE')
+            
         
         elif self.mode == 'TRef' or self.mode == 'BRef':
             self.tele_do = True
@@ -60,12 +65,32 @@ class CalculateNode(Node):
         else:
             self.can_do = True
             self.tele_do = False
-            self.target[0] = request.ipk_x
-            self.target[1] = request.ipk_y
-            self.target[2] = request.ipk_z
+            x = request.ipk_x
+            y = request.ipk_y
+            z = request.ipk_z
+            
+            response.check = "Generate ramdom target success"
+
+            random_pose_to_check = sqrt(x**2 + y**2 + (z - 0.2)**2)
+            if 0.03 < random_pose_to_check < 0.53:
+                self.target[0] = request.ipk_x
+                self.target[1] = request.ipk_y
+                self.target[2] = request.ipk_z
+                response.success = True
+                response.x = self.target[0]
+                response.y = self.target[1]
+                response.z = self.target[2]
+            else:
+                response.success = False
+                response.x = self.target[0]
+                response.y = self.target[1]
+                response.z = self.target[2]
+                
             
         return response
     
+
+
     def robot_description(self):
         """ Define the robot description using DH parameters """
         L1 = 0.200
@@ -103,7 +128,7 @@ class CalculateNode(Node):
     def timer_callback(self):
         if self.can_do:
             velocities_calc = None
-            
+            p_0e = self.robot.fkine(self.init_q).t[:3]
             if self.tele_do:
                 if self.mode == 'TRef':
                     T_0e = self.robot.fkine(self.init_q)
@@ -112,7 +137,6 @@ class CalculateNode(Node):
                 elif self.mode == 'BRef':
                     velocities_calc = self.cmd_vel
             else:
-                p_0e = self.robot.fkine(self.init_q).t[:3]
                 error = (np.array(self.target) - np.array(p_0e)) * self.kp
                 velocities_calc = error
                 
@@ -136,16 +160,43 @@ class CalculateNode(Node):
                 det = np.sqrt(np.linalg.det((jacobian_new_3x3 @ jacobian_new_3x3.T)))
 
                 if -0.001 <= det and det <= 0.001:
-                    self.get_logger().info('singularity')
                     self.init_q -= q_dot * (1 / self.freq)
                     self.q -= q_dot * (1 / self.freq)
                     self.msg.position = self.q.tolist()
                     self.joint_pub.publish(self.msg)
+                    
+                    sing_msg = String()
+                    sing_msg.data = "singularity"
+                    self.singularity_pub.publish(sing_msg)
+                    
                 else:
                     self.joint_pub.publish(self.msg)
+                    sing_msg = String()
+                    sing_msg.data = "not in singularity"
+                    self.singularity_pub.publish(sing_msg)
             else:  
                 self.joint_pub.publish(self.msg)
+                
+                
+            self.eff_msg = PoseStamped()
+            self.eff_msg.header = Header()
+            self.eff_msg.header.stamp = self.get_clock().now().to_msg()
+            self.eff_msg.header.frame_id = 'link_0'
+            self.eff_msg.pose.position.x = p_0e[0]
+            self.eff_msg.pose.position.y = p_0e[1]
+            self.eff_msg.pose.position.z = p_0e[2]
+            self.eff_pub.publish(self.eff_msg)
 
+            self.target_msg = PoseStamped()
+            self.target_msg.header = Header()
+            self.target_msg.header.stamp = self.get_clock().now().to_msg()
+            self.target_msg.header.frame_id = 'link_0'
+            self.target_msg.pose.position.x = self.target[0]
+            self.target_msg.pose.position.y = self.target[1]
+            self.target_msg.pose.position.z = self.target[2]
+            self.target_pub.publish(self.target_msg)
+            
+            
             if not self.tele_do and np.linalg.norm(velocities_calc) < 0.001:
                 # self.get_logger().info(f'{velocities_calc}')
                 self.can_do = False
