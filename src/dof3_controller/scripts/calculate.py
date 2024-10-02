@@ -127,15 +127,23 @@ class CalculateNode(Node):
 
             self.msg = JointState()
             self.msg.name = self.name
+            self.msg.position = self.q.tolist()
             self.msg.header.stamp = self.get_clock().now().to_msg()
             
-            det = np.sqrt(np.linalg.det((jacobian_3x3 @ jacobian_3x3.T)))
-            # self.get_logger().info(f'{det}')
-            if det < 1e-30:
-                self.get_logger().info('singularity')
-                pass
-            else:
-                self.msg.position = self.q.tolist()
+            if self.mode == 'TRef' or self.mode == 'BRef':
+                jacobian_new = self.robot.jacob0(self.init_q)
+                jacobian_new_3x3 = jacobian_new[:3, :3]
+                det = np.sqrt(np.linalg.det((jacobian_new_3x3 @ jacobian_new_3x3.T)))
+
+                if -0.001 <= det and det <= 0.001:
+                    self.get_logger().info('singularity')
+                    self.init_q -= q_dot * (1 / self.freq)
+                    self.q -= q_dot * (1 / self.freq)
+                    self.msg.position = self.q.tolist()
+                    self.joint_pub.publish(self.msg)
+                else:
+                    self.joint_pub.publish(self.msg)
+            else:  
                 self.joint_pub.publish(self.msg)
 
             if not self.tele_do and np.linalg.norm(velocities_calc) < 0.001:
