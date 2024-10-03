@@ -54,13 +54,13 @@ class CalculateNode(Node):
         if self.mode == 'IDLE':
             self.can_do = False
             self.tele_do = False
-            self.get_logger().info('IDLE')
+            # self.get_logger().info('IDLE')
             
         
         elif self.mode == 'TRef' or self.mode == 'BRef':
             self.tele_do = True
             self.can_do = True
-            self.get_logger().info(f'{self.mode}')
+            # self.get_logger().info(f'{self.mode}')
 
         else:
             self.can_do = True
@@ -144,7 +144,7 @@ class CalculateNode(Node):
             jacobian_3x3 = jacobian[:3, :3]
             
             q_dot = np.linalg.pinv(jacobian_3x3) @ velocities_calc
-            self.get_logger().info(f'{q_dot}')
+            # self.get_logger().info(f'{q_dot}')
             
             self.init_q += q_dot * (1 / self.freq)
             self.q += q_dot * (1 / self.freq)

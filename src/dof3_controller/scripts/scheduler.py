@@ -50,6 +50,7 @@ class ScheduleNode(Node):
         if self.mode == 'IDLE':
             self.auto = 0
             self.idle = 1
+            self.get_logger().info('IDLE Mode')
             target_request = ModeControl.Request()
             target_request.mode = self.mode
             target_request.ipk_x = self.target_IPK[0]
@@ -61,7 +62,7 @@ class ScheduleNode(Node):
 
             if self.mode == 'IPK':
                 self.idle = 0
-                self.get_logger().info(f"mode 1")
+                self.get_logger().info('IPK Mode')
 
                 target_request = ModeControl.Request()
                 target_request.mode = self.mode
@@ -79,7 +80,7 @@ class ScheduleNode(Node):
             elif self.mode == 'AUTO':
                 self.idle = 0
                 self.auto = 1
-                self.get_logger().info(f"mode 3")
+                self.get_logger().info('AUTO Mode')
                 send_request = ModeControl.Request()
                 send_request.mode = "get_random_target"
                 future = self.mode_auto_client.call_async(send_request)
@@ -87,6 +88,7 @@ class ScheduleNode(Node):
 
             elif self.mode == 'TRef':
                 self.idle = 0
+                self.get_logger().info('TRef Mode')
                 target_request = ModeControl.Request()
                 target_request.mode = self.mode
                 self.cal_state.call_async(target_request)
@@ -96,6 +98,7 @@ class ScheduleNode(Node):
 
             elif self.mode == 'BRef':
                 self.idle = 0
+                self.get_logger().info('BRef Mode')
                 target_request = ModeControl.Request()
                 target_request.mode = self.mode
                 self.cal_state.call_async(target_request)
