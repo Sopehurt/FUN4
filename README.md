@@ -122,7 +122,11 @@ ax.set_ylabel('Y Position')
 ax.set_zlabel('Z Position')
 plt.show()
 ```
+ผลลัพธ์ที่ได้จากการหา workspace จะได้กราฟดังนี้
+![alt text](<src/image/Screenshot from 2024-10-04 04-39-15.png>)
 
+โดยมาจากหุ่นที่สามารถ plot ออกมาได้ดังนี้
+![alt text](<src/image/Screenshot from 2024-10-04 04-41-15.png>)
 ### คำอธิบาย
 
 - โค้ดนี้ใช้คำนวณและแสดงตำแหน่ง (x, y, z) ของปลายแขนกลในรูปแบบ 3D workspace โดยการสร้าง grid ของมุมข้อต่อและคำนวณ Forward Kinematics

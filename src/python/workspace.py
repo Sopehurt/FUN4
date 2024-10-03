@@ -84,31 +84,3 @@ print(len(z_positions))
 
 input('enter to exit')
 
-L1 = 0.200
-L2 = 0.120
-L3 = 0.100
-L4 = 0.250
-L5 = 0.280
-
-robot = rtb.DHRobot(
-    [
-        rtb.RevoluteMDH(alpha = 0.0     ,a = 0.0      ,d = L1     ,offset = 0.0),
-        rtb.RevoluteMDH(alpha = -pi/2   ,a = 0.0      ,d = -L2    ,offset = -pi/2),
-        rtb.RevoluteMDH(alpha = 0.0     ,a = L4       ,d = L3     ,offset = 0.0),
-    ],tool = SE3([
-    [0, 0, 1, L5],
-    [1, 0, 0, 0],
-    [0, 1, 0, 0],
-    [0, 0, 0, 1]]),
-    name = "FUN4_Robot"
-)
-
-q_sol = [0,0,0]
-x = 0.1
-y = 0.2
-z = 0.3
-T_0e = SE3(x,y,z) @ SE3.RPY(0,0,0)
-print(T_0e)
-
-q_sol = robot.ik_LM(T_0e)
-print(q_sol[0])
