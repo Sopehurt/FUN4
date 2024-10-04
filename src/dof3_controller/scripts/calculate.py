@@ -176,6 +176,7 @@ class CalculateNode(Node):
                     sing_msg = String()
                     sing_msg.data = "singularity"
                     self.singularity_pub.publish(sing_msg)
+                    self.get_logger().info("singularity")
                     
                 else:
                     self.joint_pub.publish(self.msg)
