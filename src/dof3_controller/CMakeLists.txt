@@ -28,9 +28,6 @@ ament_python_install_package(${PROJECT_NAME})
 # Install Python executables
 install(PROGRAMS
   scripts/target_pose.py
-  scripts/jointstate_script.py
-  scripts/controller.py
-  scripts/teleop_subscribe.py
   scripts/teleop_mode_key.py
   scripts/scheduler.py
   scripts/calculate.py

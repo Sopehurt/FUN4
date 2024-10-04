@@ -47,9 +47,8 @@
     ```bash
     ros2 run dof3_controller  teleop_mode_key.py
     ```
-
-    จากนั้นให้ทำการปิดหน้าต่าง Joint Dtate Publisher เรื่องจากเราไม่ต้องการควบคุมแต่ละ Joint หรือใช้ฟังก์ชั่นนี้
-    ![alt text](<src/image/Screenshot from 2024-10-04 04-34-13.png>)
+5. ก่อนที่จะเริ่มเขียนจะทำการอ่านโจทย์เพื่อนำมาออกแบบ System architecture เพื่อทำความเข้าใจโจทย์และวางแผนการทำงานของระบบทั้งหมดก่อนดังนี้
+![alt text](<src/image/Screenshot from 2024-10-04 18-29-21.png>)
 
 ## 2. การคำนวณ Workspace ของหุ่นยนต์
 
@@ -222,6 +221,13 @@ input('enter to exit')
 - **Tele-operation Mode (Teleop)**: ควบคุมหุ่นยนต์ผ่านคีย์บอร์ด 
     - สามารถควบคุมที่อ้างอิงจากปลายมือหรือฐานของหุ่นยนต์
     - หากหุ่นยนต์เข้าใกล้ singularity หุ่นยนต์จะหยุดการเคลื่อนไหว
+    - วิธีการใช้โหมดนี้โดยการใช้คำสั่ง
+    ```bash
+    ros2 service call /cal_state fun4_interfaces/srv/ModeControl "mode: 'AUTO'
+    ipk_x: 0.0
+    ipk_y: 0.0
+    ipk_z: 0.0"  
+    ```
     - วิธีการใช้โหมดนี้ทำได้จาก terminal[3]
     แต่ต้องมั่นใจว่า mode ณ ปัจจุบันเป็น mode `IDLE` ถ้าเป็น mode อื่นให้ทำการกด `0` ใน terminal[3] 
     เมื่อมั่นใจแล้วกดเลข `2` ในหน้า terminal[3] ระบบจะแสดง

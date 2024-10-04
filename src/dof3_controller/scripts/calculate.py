@@ -49,6 +49,14 @@ class CalculateNode(Node):
         self.mode = ''
         self.cmd_vel = np.array([0.0, 0.0, 0.0])
 
+        msg = JointState()
+        msg.header.stamp = self.get_clock().now().to_msg()
+        for i in range(len(self.q)):
+            msg.position.append(self.q[i])
+            msg.name.append(self.name[i])
+        self.joint_pub.publish(msg)
+
+
     def server_cal_state_callback(self, request: ModeControl.Request, response: ModeControl.Response):
         self.mode = request.mode
         if self.mode == 'IDLE':
