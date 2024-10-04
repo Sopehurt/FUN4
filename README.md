@@ -35,7 +35,7 @@
 
     ในหน้าต่าง terminal[1] รัน launch file
     ```bash
-    ros2 launch dof3_controller robot_control.launch.py
+    ros2 launch dof3_controller simple_display.launch.py 
     ```
     
     เปิดใหม่ให้ terminal[2] มาแล้วรันเพื่อเปิด node ควบคุมด้วย keyboard
