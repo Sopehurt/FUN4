@@ -33,20 +33,33 @@
 
 4. รันโปรแกรม:
 
-    ในหน้าต่าง terminal[1] รัน launch file
+    - ในหน้าต่าง terminal[1] รัน launch file
     ```bash
+    cd FUN4
+    source install/setup.bash
+    source /opt/ros/humble/setup.bash
     ros2 launch dof3_controller simple_display.launch.py 
     ```
+    ![alt text](<src/image/Screenshot from 2024-10-04 18-58-33.png>)
     
-    เปิดใหม่ให้ terminal[2] มาแล้วรันเพื่อเปิด node ควบคุมด้วย keyboard
+    - เปิดใหม่ให้ terminal[2] มาแล้วรันเพื่อเปิด node ควบคุมด้วย keyboard
     ```bash
+    cd FUN4
+    source install/setup.bash
+    source /opt/ros/humble/setup.bash
     ros2 run teleop_twist_keyboard teleop_twist_keyboard
     ```
+    ![alt text](<src/image/Screenshot from 2024-10-04 19-00-02.png>)
 
-    เปิดใหม่ให้ terminal[3] มาแล้วรันเพื่อเปิด node ที่ใช้ในการเปลี่ยน mode
+    - เปิดใหม่ให้ terminal[3] มาแล้วรันเพื่อเปิด node ที่ใช้ในการเปลี่ยน mode
     ```bash
+    cd FUN4
+    source install/setup.bash
+    source /opt/ros/humble/setup.bash
     ros2 run dof3_controller  teleop_mode_key.py
     ```
+    ![alt text](<src/image/Screenshot from 2024-10-04 19-00-45.png>)
+
 5. ก่อนที่จะเริ่มเขียนจะทำการอ่านโจทย์เพื่อนำมาออกแบบ System architecture เพื่อทำความเข้าใจโจทย์และวางแผนการทำงานของระบบทั้งหมดก่อนดังนี้
 ![alt text](<src/image/Screenshot from 2024-10-04 18-29-21.png>)
 
