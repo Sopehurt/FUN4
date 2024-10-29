@@ -29,6 +29,7 @@ class TargetBagNode(Node):
         self.set_mode_client = self.create_client(ModeControl, '/mode')
         
         
+        
         """---------------------------------------SERVER----------------------------------------"""
         
         self.save_path_server = self.create_service(SetBool, "/SavePath", self.save_path_callback)
@@ -67,10 +68,10 @@ class TargetBagNode(Node):
         
         return response
     
-    def ref_callback(self, request: SetBool, response: SetBool):
+    def mode_callback(self, request: SetBool, response: SetBool):
         # Set response values as there is no request data in Trigger service
         self.ref = request.data
-        self.get_logger().info("change Referebce")
+        self.get_logger().info("Change Mode")
         
         send_request = ModeControl.Request()
         
@@ -80,15 +81,16 @@ class TargetBagNode(Node):
         else:
             self.mode =0
             send_request.mode = 'IDLE'
+            self.list_point = []
             
         
         self.set_mode_client.call_async(send_request)
         
         return response
     
-    def mode_callback(self, request: SetBool, response: SetBool):
+    def ref_callback(self, request: SetBool, response: SetBool):
         # Set response values as there is no request data in Trigger service
-        self.get_logger().info("change Mode")
+        self.get_logger().info("Change Reference")
         send_request = ModeControl.Request()
         if self.mode == 0:
             send_request.mode = 'IDLE'
