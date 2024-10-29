@@ -39,8 +39,8 @@ class CalculateNode(Node):
         self.mode_client = self.create_client(ModeControl, '/mode')
         
         self.kp = 1
-        self.init_q = np.array([0.0, 0.0, 0.0])
-        self.q = np.array([0.0, 0.0, 0.0])
+        self.init_q = np.array([1.0, 1.0, 4.0])
+        self.q = np.array([1.0, 1.0, 4.0])
         self.name = ["joint_1", "joint_2", "joint_3"]
         self.get_logger().info("target_pose_node has been started.")
         self.can_do = False

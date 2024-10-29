@@ -31,6 +31,7 @@ install(PROGRAMS
   scripts/teleop_mode_key.py
   scripts/scheduler.py
   scripts/calculate.py
+  scripts/TargetBag.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

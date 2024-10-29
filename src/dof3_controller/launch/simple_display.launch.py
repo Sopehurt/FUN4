@@ -93,14 +93,15 @@ def generate_launch_description():
     launch_description.add_action( CalculateNode )
     
     
-    # """--------------------------------------ControllerNode------------------------------------------"""
-    # ControllerNode = Node(
-    #     package='dof3_controller',
-    #     namespace='',
-    #     executable='controller.py',
-    #     name='controller_node',
-    #     parameters=[
-    #     ]
-    # )
-    # launch_description.add_action( ControllerNode )
+    """--------------------------------------TargetBagNodeNode------------------------------------------"""
+    TargetBagNodeNode = Node(
+        package='dof3_controller',
+        namespace='',
+        executable='TargetBag.py',
+        name='target_bag_node',
+        parameters=[
+        ]
+    )
+    launch_description.add_action( TargetBagNodeNode )
+    
     return launch_description
